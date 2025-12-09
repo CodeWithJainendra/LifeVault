@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ContactPickerScreen extends StatefulWidget {
   const ContactPickerScreen({super.key});
@@ -47,10 +46,10 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
 
   Future<void> _loadContacts() async {
     try {
-      // Request permission
-      final status = await Permission.contacts.request();
+      // First check if permission is already granted
+      bool hasPermission = await FlutterContacts.requestPermission();
       
-      if (status.isGranted) {
+      if (hasPermission) {
         // Fetch all contacts with phone numbers
         final contacts = await FlutterContacts.getContacts(
           withProperties: true,
@@ -69,12 +68,10 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
           _isLoading = false;
           _buildSectionIndices();
         });
-      } else if (status.isPermanentlyDenied) {
-        setState(() => _isLoading = false);
-        _showPermissionDeniedDialog(permanentlyDenied: true);
       } else {
+        // Permission was denied
         setState(() => _isLoading = false);
-        _showPermissionDeniedDialog(permanentlyDenied: false);
+        _showPermissionDeniedDialog();
       }
     } catch (e) {
       setState(() => _isLoading = false);
@@ -153,7 +150,7 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
     Navigator.pop(context, selectedContacts);
   }
 
-  void _showPermissionDeniedDialog({required bool permanentlyDenied}) {
+  void _showPermissionDeniedDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -165,9 +162,7 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          permanentlyDenied
-              ? 'Contact permission is permanently denied. Please enable it from app settings to add nominees.'
-              : 'Contact permission is required to add nominees from your contacts.',
+          'Contact permission is required to add nominees from your contacts. Please allow access when prompted.',
           style: TextStyle(color: Colors.grey[400], fontSize: 14),
         ),
         actions: [
@@ -178,22 +173,13 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
             },
             child: Text('Cancel', style: TextStyle(color: Colors.grey[500])),
           ),
-          if (permanentlyDenied)
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                openAppSettings();
-              },
-              child: const Text('Open Settings', style: TextStyle(color: accentColor)),
-            )
-          else
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _loadContacts();
-              },
-              child: const Text('Try Again', style: TextStyle(color: accentColor)),
-            ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _loadContacts();
+            },
+            child: const Text('Allow Access', style: TextStyle(color: accentColor)),
+          ),
         ],
       ),
     );

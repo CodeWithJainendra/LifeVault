@@ -11,6 +11,20 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   // 0 = Login, 1 = Register, 2 = Forgot Password
   int _currentMode = 0;
+  int _direction = 1; // 1 = Forward (Right to Left), -1 = Backward (Left to Right)
+
+  ValueKey<String> _getKey(int mode) {
+    switch (mode) {
+      case 0:
+        return const ValueKey("login");
+      case 1:
+        return const ValueKey("register");
+      case 2:
+        return const ValueKey("forgot");
+      default:
+        return const ValueKey("unknown");
+    }
+  }
 
   String _getHeaderText() {
     switch (_currentMode) {
@@ -162,10 +176,40 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 600),
+                    switchInCurve: Curves.easeOutQuart,
+                    switchOutCurve: Curves.easeInQuart,
                     transitionBuilder: (child, animation) {
-                      final offset = Tween<Offset>(begin: const Offset(0.0, 0.08), end: Offset.zero).animate(animation);
-                      return FadeTransition(opacity: animation, child: SlideTransition(position: offset, child: child));
+                      final bool isEntering = child.key == _getKey(_currentMode);
+                      final bool forward = _direction > 0;
+
+                      Offset beginOffset;
+                      if (forward) {
+                        // Forward: Push effect
+                        if (isEntering) {
+                          // Enter from Right
+                          beginOffset = const Offset(1.0, 0.0);
+                        } else {
+                          // Exit to Left
+                          // Tween(-1, 0) runs reversed (0->-1)
+                          beginOffset = const Offset(-1.0, 0.0);
+                        }
+                      } else {
+                        // Backward: Pop effect
+                        if (isEntering) {
+                          // Enter from Left
+                          beginOffset = const Offset(-1.0, 0.0);
+                        } else {
+                          // Exit to Right
+                          // Tween(1, 0) runs reversed (0->1)
+                          beginOffset = const Offset(1.0, 0.0);
+                        }
+                      }
+
+                      return SlideTransition(
+                        position: Tween<Offset>(begin: beginOffset, end: Offset.zero).animate(animation),
+                        child: child,
+                      );
                     },
                     child: _buildCurrentForm(accentColor),
                   ),
@@ -184,20 +228,32 @@ class _LoginScreenState extends State<LoginScreen> {
         return _LoginForm(
           key: const ValueKey("login"),
           accent: accentColor,
-          onToggle: () => setState(() => _currentMode = 1),
-          onForgotPassword: () => setState(() => _currentMode = 2),
+          onToggle: () => setState(() {
+            _direction = 1;
+            _currentMode = 1;
+          }),
+          onForgotPassword: () => setState(() {
+            _direction = 1;
+            _currentMode = 2;
+          }),
         );
       case 1:
         return _RegisterForm(
           key: const ValueKey("register"),
           accent: accentColor,
-          onToggle: () => setState(() => _currentMode = 0),
+          onToggle: () => setState(() {
+            _direction = -1;
+            _currentMode = 0;
+          }),
         );
       case 2:
         return _ForgotPasswordForm(
           key: const ValueKey("forgot"),
           accent: accentColor,
-          onBack: () => setState(() => _currentMode = 0),
+          onBack: () => setState(() {
+            _direction = -1;
+            _currentMode = 0;
+          }),
         );
       default:
         return const SizedBox();

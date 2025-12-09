@@ -47,5 +47,11 @@
 	<true/>
 	<key>NSContactsUsageDescription</key>
 	<string>LifeVault needs access to your contacts to add nominees who will receive your legacy data.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>LifeVault needs camera access to capture documents for your digital vault.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>LifeVault needs microphone access to record voice messages for your loved ones.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>LifeVault needs photo library access to select documents from your gallery.</string>
 </dict>
 </plist>
