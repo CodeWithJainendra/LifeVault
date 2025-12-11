@@ -3,6 +3,7 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'documents_page.dart';
+import 'nominees_page.dart';
 import 'package:flutter/services.dart';
 import 'contact_picker_screen.dart';
 import 'profile_screen.dart';
@@ -177,10 +178,11 @@ class _MainDashboardState extends State<MainDashboard> with TickerProviderStateM
                   final Key? key = child.key;
                   final bool isProfile = key == const ValueKey('profile');
                   final bool isSessions = key == const ValueKey('sessions');
+                  final bool isNominees = key == const ValueKey('nominees');
                   
                   Offset beginOffset = const Offset(-1.0, 0.0); // Default enter from Left
 
-                  if (isProfile || isSessions) {
+                  if (isProfile || isSessions || isNominees) {
                     beginOffset = const Offset(1.0, 0.0); // Enter from Right
                   }
 
@@ -280,7 +282,7 @@ class _MainDashboardState extends State<MainDashboard> with TickerProviderStateM
   }
 
   // ---------------------------------------------------------------------------
-  // EXISTING METHODS (Modified to include TickerProviderStateMixin)
+  // EXISTING METHODS
   // ---------------------------------------------------------------------------
   
   Widget _switchContent() {
@@ -292,6 +294,10 @@ class _MainDashboardState extends State<MainDashboard> with TickerProviderStateM
         return DocumentsPage(
           key: const ValueKey('sessions'),
           onClose: () => setState(() => _selectedIndex = 0),
+        );
+      case 2:
+        return const NomineesPage(
+          key: ValueKey('nominees'),
         );
       case 3:
         return ProfileScreen(
@@ -624,10 +630,6 @@ class _MainDashboardState extends State<MainDashboard> with TickerProviderStateM
     );
   }
 
-// ---------------------------------------------------------------------------
-// RESTORED MISSING METHODS
-// ---------------------------------------------------------------------------
-
   Future<void> _handleAddDocument() async {
     const Color cardDark = Color(0xFF1E293B);
     showModalBottomSheet(
@@ -798,11 +800,18 @@ class _permissionOption extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
       return ListTile(
-        onTap: onTap,
-        leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: Colors.blueAccent)),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: Colors.white70),
+        ),
+        title: Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
         subtitle: Text(subtitle, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        trailing: Icon(Icons.chevron_right_rounded, color: Colors.grey[600]),
+        onTap: onTap,
       );
     }
 }
