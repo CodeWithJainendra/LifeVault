@@ -385,16 +385,6 @@ class _LoginFormState extends State<_LoginForm> {
         ),
         const SizedBox(height: 24),
         _loginButton(),
-        const SizedBox(height: 20),
-        Center(child: Text("Or", style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 12))),
-        const SizedBox(height: 20),
-        Row(
-          children: [
-            Expanded(child: _socialBtn("Google", Icons.g_mobiledata, Colors.white)),
-            const SizedBox(width: 12),
-            Expanded(child: _socialBtn("Facebook", Icons.facebook, Colors.blue)),
-          ],
-        ),
       ],
     );
   }
@@ -610,41 +600,22 @@ Widget _input({required String hint, bool isPassword = false}) {
   );
 }
 
-Widget _button(String text, Color color) {
-  return SizedBox(
-    width: double.infinity,
-    height: 50,
-    child: ElevatedButton(
-      onPressed: () {},
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+  Widget _button(String text, Color color) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        ),
+        child: Text(text, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-    ),
-  );
-}
-
-Widget _socialBtn(String text, IconData icon, Color iconColor) {
-  return Container(
-    height: 46,
-    decoration: BoxDecoration(
-      color: const Color(0xFF0F172A),
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, color: iconColor, size: 20),
-        const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white)),
-      ],
-    ),
-  );
-}
+    );
+  }
 
 // ---------------------------------------------------------------------------
 // FORGOT PASSWORD FORM (Multi-step within card)

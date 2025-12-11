@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ContactPickerScreen extends StatefulWidget {
   const ContactPickerScreen({super.key});
@@ -46,10 +47,14 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
 
   Future<void> _loadContacts() async {
     try {
-      // First check if permission is already granted
-      bool hasPermission = await FlutterContacts.requestPermission();
+      // Check and request permission using permission_handler
+      PermissionStatus status = await Permission.contacts.status;
       
-      if (hasPermission) {
+      if (!status.isGranted) {
+        status = await Permission.contacts.request();
+      }
+      
+      if (status.isGranted) {
         // Fetch all contacts with phone numbers
         final contacts = await FlutterContacts.getContacts(
           withProperties: true,
@@ -62,20 +67,26 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
             .where((c) => c.phones.isNotEmpty)
             .toList();
 
-        setState(() {
-          _allContacts = contactsWithPhones;
-          _filteredContacts = contactsWithPhones;
-          _isLoading = false;
-          _buildSectionIndices();
-        });
+        if (mounted) {
+          setState(() {
+            _allContacts = contactsWithPhones;
+            _filteredContacts = contactsWithPhones;
+            _isLoading = false;
+            _buildSectionIndices();
+          });
+        }
       } else {
-        // Permission was denied
-        setState(() => _isLoading = false);
-        _showPermissionDeniedDialog();
+        // Permission denied or permanently denied
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _showPermissionDeniedDialog(isPermanentlyDenied: status.isPermanentlyDenied);
+        }
       }
     } catch (e) {
-      setState(() => _isLoading = false);
-      _showErrorSnackbar('Failed to load contacts: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showErrorSnackbar('Failed to load contacts: $e');
+      }
     }
   }
 
@@ -150,7 +161,7 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
     Navigator.pop(context, selectedContacts);
   }
 
-  void _showPermissionDeniedDialog() {
+  void _showPermissionDeniedDialog({bool isPermanentlyDenied = false}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -162,7 +173,9 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Contact permission is required to add nominees from your contacts. Please allow access when prompted.',
+          isPermanentlyDenied
+              ? 'Contact permission is permanently denied. Please enable it in App Settings to add nominees.'
+              : 'Contact permission is required to add nominees from your contacts. Please allow access when prompted.',
           style: TextStyle(color: Colors.grey[400], fontSize: 14),
         ),
         actions: [
@@ -174,11 +187,18 @@ class _ContactPickerScreenState extends State<ContactPickerScreen> {
             child: Text('Cancel', style: TextStyle(color: Colors.grey[500])),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              _loadContacts();
+              if (isPermanentlyDenied) {
+                await openAppSettings();
+              } else {
+                _loadContacts();
+              }
             },
-            child: const Text('Allow Access', style: TextStyle(color: accentColor)),
+            child: Text(
+              isPermanentlyDenied ? 'Open Settings' : 'Allow Access',
+              style: const TextStyle(color: accentColor),
+            ),
           ),
         ],
       ),
